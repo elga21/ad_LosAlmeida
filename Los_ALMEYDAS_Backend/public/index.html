@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Los ALMEYDAS - Tienda de Productos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col font-inter">
+    <header class="bg-white shadow-md p-4 flex justify-between items-center rounded-b-lg">
+        <h1 class="text-2xl font-bold text-gray-800">🛍️ Productos Los Almeydas</h1>
+        <nav class="flex items-center space-x-4">
+            <a href="/cart.html" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
+                Ver Carrito (<span id="cart-count">0</span>)
+            </a>
+            <a id="auth-nav-link" href="/auth.html" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md">
+                Login / Registro
+            </a>
+            <a id="admin-link" href="/dashboard.html" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md hidden">
+                Administración
+            </a>
+            <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md hidden">
+                Cerrar Sesión
+            </button>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-6 flex-grow">
+        <div id="message-box" class="message-box"></div> 
+        <div id="loading-spinner" class="spinner-container show">
+            <div class="spinner"></div>
+            <span>Cargando productos...</span>
+        </div>
+
+        <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white p-4 text-center mt-8 rounded-t-lg">
+        <p>&copy; 2024 Los_ALMEYDAS. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="/js/index.js"></script>
+</body>
+</html>
