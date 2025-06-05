@@ -4,7 +4,7 @@ const router = express.Router();
 const pool = require('../config/db'); // Importa el pool de conexiones a la base de datos
 // CORRECCIÓN CLAVE: El nombre del archivo y la importación del middleware deben coincidir.
 // Se eliminó la 's' extra en 'authenticatetsToken'
-const authenticateToken = require('../middleware/authenticateToken'); // Middleware de autenticación
+const authenticateToken = require('../middleware/authenticateToken'); // SIN la 's' extra en 'authenticateToken'
 const authorizeRole = require('../middleware/authorizeRole'); // Middleware de autorización
 
 // 1. GET /api/pedidos - Obtener todos los pedidos (solo para admins) o pedidos del usuario (para clientes)
