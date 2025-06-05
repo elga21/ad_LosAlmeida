@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Productos - Almeyda</title>
+    <link rel="stylesheet" href="productos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="topbar">
+            <div class="logo">
+                <img src="Imagenes/logo.jpeg" alt="Logo">
+            </div>
+            <nav>
+                <a href="#">Bienvenido</a>
+                <a href="#" class="activo">Productos</a>
+                <a href="#">Inventario</a>
+                <a href="#">Nosotros</a>
+                <a href="#">Cerrar Sesión</a>
+            </nav>
+            <div class="icons">
+                <i class="fa-solid fa-user"></i>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="search-cart">
+            <div class="search-box">
+                <input type="text" placeholder="Buscar">
+                <button><i class="fa fa-search"></i></button>
+            </div>
+            <div class="cart">
+                <i class="fa fa-shopping-cart"></i>
+                <span class="cart-count">1</span>
+            </div>
+        </div>
+
+        <div class="product-list">
+            <div class="product-card">
+                <img src="Imagenes/tomahawk.jpeg" alt="Tomahawk">
+                <h3 class="name">Filete Tomahawk Crudo</h3>
+                <p class="price">$22,500</p>
+                <button>Seleccionar</button>
+            </div>
+            <div class="product-card">
+                <img src="Imagenes/imagen_1.png" alt="Pata">
+                <h3 class="name">Pata de Cerdo</h3>
+                <p class="price">$11.500</p>
+                <button>Seleccionar</button>
+            </div>
+            <div class="product-card">
+                <img src="Imagenes/Image.png" alt="Cecina">
+                <h3 class="name">Cecina de Res</h3>
+                <p class="price">$16.700</p>
+                <button>Seleccionar</button>
+            </div>
+            <div class="product-card">
+                <img src="Imagenes/imagen_7.jpeg" alt="Lomo">
+                <h3 class="name">Lomo de Cerdo</h3>
+                <p class="price">$19.600</p>
+                <button>Seleccionar</button>
+            </div>
+            <div class="product-card">
+                <img src="Imagenes/imagen_2.png" alt="Pezuña">
+                <h3 class="name">Pezuña de Cerdo</h3>
+                <p class="price">$4.800</p>
+                <button>Seleccionar</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="socials">
+            <i class="fa-brands fa-x-twitter"></i> <span>XXXXXXX</span>
+            <i class="fa-brands fa-instagram"></i> <span>XXXXXXX</span>
+            <i class="fa-brands fa-linkedin"></i> <span>XXXXXXX</span>
+            <i class="fa-brands fa-youtube"></i> <span>XXXXXXX</span>
+        </div>
+    </footer>
+    <div class="cart-sidebar" id="cartSidebar">
+    <h2>Carrito de Compras</h2>
+
+    <div class="cart-item">
+        <span class="item-name">Filete Tomahawk Crudo</span>
+        <span class="item-price">$22,500</span>
+    </div>
+    <div class="cart-item">
+        <span class="item-name">Pata de Cerdo</span>
+        <span class="item-price">$11,500</span>
+    </div>
+
+    <hr>
+    <div class="cart-total">
+        <strong>Total:</strong>
+        <span>$34,000</span>
+    </div>
+
+    <button class="checkout-btn">Finalizar Compra</button>
+    <button class="close-cart-btn" onclick="toggleCart()">Cerrar</button>
+</div>
+
+<script>
+    const cartIcon = document.querySelector(".cart");
+    cartIcon.addEventListener("click", () => {
+        document.getElementById("cartSidebar").classList.toggle("active");
+    });
+
+    function toggleCart() {
+        document.getElementById("cartSidebar").classList.remove("active");
+    }
+</script>
+</body>
+</html>

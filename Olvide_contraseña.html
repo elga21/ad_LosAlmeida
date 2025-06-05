@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Recuperar Contraseña - Almeyda</title>
+    <link rel="stylesheet" href="Olvide_contraseña.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="Imagenes/logo.jpeg" alt="Logo">
+            </div>
+            <nav>
+                <a href="#" class="activo">Bienvenido</a>
+                <a href="#">Productos</a>
+                <a href="#">Nosotros</a>
+            </nav>
+            <button class="login-btn">Iniciar Sesión</button>
+        </div>
+    </header>
+
+    <div class="forgot-container">
+        <div class="forgot-box">
+            <div class="icon-lock">🔒</div>
+            <h2>¿Olvidaste tu contraseña?</h2>
+            <p>Ingresa tu correo electrónico y te enviaremos instrucciones para restablecerla.</p>
+            <form method="POST" action="/recover-password">
+                <input type="email" name="correo" placeholder="Correo electrónico" required>
+                <button type="submit">Enviar</button>
+            </form>
+            <div class="links">
+                <a href="inicio_sesion.html">Volver al inicio de sesión</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

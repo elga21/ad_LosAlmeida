@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrarse - Almeyda</title>
+    <link rel="stylesheet" href="registrarse.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="Imagenes/logo.jpeg" alt="Logo">
+            </div>
+            <nav>
+                <a href="#" class="activo">Bienvenido</a>
+                <a href="#">Productos</a>
+                <a href="#">Nosotros</a>
+            </nav>
+            <button class="login-btn">Iniciar Sesión</button>
+        </div>
+    </header>
+
+    <div class="register-container">
+        <div class="register-box">
+            <div class="icon-user">📝</div>
+            <form method="POST" action="/register">
+                <input type="text" name="usuario" placeholder="Usuario" required>
+                <input type="password" name="contraseña" placeholder="Contraseña" required>
+                <input type="text" name="nombre" placeholder="Nombre completo" required>
+                <input type="tel" name="telefono" placeholder="Teléfono" required>
+                <input type="text" name="direccion" placeholder="Dirección" required>
+                <button type="submit">Registrarse</button>
+            </form>
+            <div class="links">
+                <a href="inicio_sesion.html">¿Ya tienes cuenta?</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

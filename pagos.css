@@ -1,0 +1,209 @@
+/* --- ESTILOS GENERALES --- */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #c0c0c0;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+header {
+  background: white;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.logo img {
+  height: 60px;
+  margin-right: 10px;
+}
+
+nav a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: black;
+}
+
+nav a.activo {
+  color: red;
+}
+
+.login-btn {
+  background: black;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
+/* SECCIÓN NOSOTROS */
+.contenido {
+  background-color: #c0c0c0;
+  padding: 50px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.info-nosotros {
+  background: white;
+  padding: 40px;
+  display: flex;
+  max-width: 1000px;
+  width: 90%;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+.info-nosotros img {
+  width: 300px;
+  height: auto;
+  margin-right: 30px;
+}
+
+.texto h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.texto h3 {
+  margin-top: 10px;
+  color: gray;
+}
+
+.texto p {
+  margin-top: 20px;
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+/* FOOTER */
+footer {
+  background: white;
+  padding: 30px;
+  text-align: center;
+}
+
+.redes {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  font-size: 24px;
+}
+
+
+/* --- CONTENIDO CENTRAL --- */
+.contenido {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 50px 20px;
+}
+
+.pago-box {
+  background-color: white;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.precio {
+  color: red;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.moneda {
+  font-size: 14px;
+  color: gray;
+}
+
+.metodos {
+  margin-top: 20px;
+}
+
+.titulo {
+  font-weight: bold;
+}
+
+.subtitulo {
+  font-size: 14px;
+  color: gray;
+  margin-bottom: 20px;
+}
+
+.opcion {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px; /* añade un pequeño espacio entre elementos */
+}
+
+.opcion img {
+  width: 50px;
+  height: 50px;
+  margin: 0 10px;
+}
+
+.flecha {
+  font-size: 20px;
+  color: black;
+  text-decoration: none;
+  margin-left: 20px;
+  transition: transform 0.2s;
+  position: relative;
+  top: -18px; /* 👈 sube la flecha */
+}
+
+.flecha:hover {
+  transform: translateX(4px);
+  color: red;
+}
+
+.back {
+  font-size: 28px;       /* Más grande */
+  font-weight: bold;     /* Más gruesa */
+  text-decoration: none;
+  color: black;
+  margin-right: 20px;    /* Espacio a la derecha del logo */
+  transition: transform 0.2s, color 0.2s;
+}
+
+.back:hover {
+  transform: translateX(-4px);
+  color: red;
+}
+/* --- FOOTER (si decides agregar uno) --- */
+/*
+footer {
+  background-color: #fff;
+  text-align: center;
+  padding: 20px;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+}
+*/

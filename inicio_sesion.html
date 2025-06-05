@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión - Almeyda</title>
+    <link rel="stylesheet" href="inicio_sesion.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+<header>
+    <div class="container">
+      <div class="logo">
+        <img src="Imagenes/logo.jpeg" alt="Logo">
+      </div>
+      <nav>
+        <a href="#" class="activo">Bienvenido</a>
+        <a href="#">Productos</a>
+        <a href="#">Nosotros</a>
+      </nav>
+      <button class="login-btn">Iniciar Sesión</button>
+    </div>
+  </header>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="icon-user">👤</div>
+            <form method="POST" action="/login">
+                <input type="text" name="usuario" placeholder="Nombre" required>
+                <input type="email" name="correo" placeholder="Gmail" required>
+                <input type="password" name="contraseña" placeholder="Contraseña" required>
+                <button type="submit">Iniciar Sesión</button>
+            </form>
+            <div class="links">
+                <a href="Olvide_contraseña.html">¿Olvidaste tu Contraseña?</a><br>
+                <a href="registrarse.html">¿No tienes cuenta?</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
