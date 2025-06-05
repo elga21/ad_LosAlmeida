@@ -2,13 +2,15 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db'); // Importa el pool de conexiones a la base de datos
+// CORRECCIÓN CLAVE: El nombre del archivo y la importación del middleware deben coincidir.
+// Se eliminó la 's' extra en 'authenticatetsToken'
 const authenticateToken = require('../middleware/authenticateToken'); // Middleware de autenticación
 const authorizeRole = require('../middleware/authorizeRole'); // Middleware de autorización
 
 // 1. GET /api/pedidos - Obtener todos los pedidos (solo para admins) o pedidos del usuario (para clientes)
 router.get('/', authenticateToken, async (req, res) => {
     const userId = req.user.id_usuario; // ID del usuario autenticado
-    const userRole = req.user.rol;     // Rol del usuario autenticado
+    const userRole = req = req.user.rol; // Rol del usuario autenticado
 
     let query = `
         SELECT
@@ -45,7 +47,7 @@ router.get('/', authenticateToken, async (req, res) => {
                     dp.cantidad,
                     dp.precio_unitario,
                     prod.nombre,
-                    prod.url_imagen  -- Asegurarse de seleccionar la URL de la imagen
+                    prod.url_imagen  -- Asegurarse de seleccionar la URL de la imagen para el frontend
                 FROM
                     DETALLE_PEDIDO dp
                 JOIN
@@ -104,7 +106,7 @@ router.post('/', authenticateToken, authorizeRole('cliente'), async (req, res) =
         connection_pedido = await pool.getConnection(); // Obtener una conexión de la pool
         await connection_pedido.beginTransaction(); // Iniciar la transacción
 
-        // 1. Crear el nuevo pedido en la tabla PEDIDOS (sin columna 'total')
+        // 1. Crear el nuevo pedido en la tabla PEDIDOS (sin columna 'total' en el INSERT)
         const insertPedidoQuery = `INSERT INTO PEDIDOS (id_usuario, fecha_pedido, estado) VALUES (?, NOW(), 'Pendiente')`;
         const [pedidoResult] = await connection_pedido.execute(insertPedidoQuery, [userId]);
         const id_pedido = pedidoResult.insertId;
@@ -128,7 +130,7 @@ router.post('/', authenticateToken, authorizeRole('cliente'), async (req, res) =
                 return res.status(400).json({ message: `Stock insuficiente para el producto con ID ${id_producto}. Stock disponible: ${stock}, solicitado: ${cantidad}.` });
             }
 
-            // Insertar en DETALLE_PEDIDO (corregido a DETALLE_PEDIDO)
+            // Insertar en DETALLE_PEDIDO (corregido a DETALLE_PEDIDO, no DETALLES_PEDIDO)
             const insertDetalleQuery = `INSERT INTO DETALLE_PEDIDO (id_pedido, id_producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?)`;
             await connection_pedido.execute(insertDetalleQuery, [id_pedido, id_producto, cantidad, precio]);
 
@@ -154,4 +156,3 @@ router.post('/', authenticateToken, authorizeRole('cliente'), async (req, res) =
 });
 
 module.exports = router;
-
