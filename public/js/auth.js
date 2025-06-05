@@ -10,7 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageBox = document.getElementById('message-box');
     const loadingSpinner = document.getElementById('loading-spinner');
 
-    const API_BASE_URL = 'http://localhost:3000/api'; // URL base de tu API
+    // CAMBIO CLAVE: API_BASE_URL ahora es dinámica para apuntar al dominio de la aplicación desplegada
+    const API_BASE_URL = `${window.location.origin}/api`;
 
     // Función para mostrar mensajes en la caja de mensajes global
     function showMessage(message, type = 'success') {
@@ -20,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 messageBox.classList.remove('show');
             }, 3000);
+        } else {
+            console.warn('Elemento message-box no encontrado en el DOM.');
+            // alert(message); // No usar alert() en producción o en apps complejas
         }
     }
 
@@ -90,15 +94,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify(data)
                 });
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    showMessage(result.message, 'success');
-                    registerForm.reset(); // Limpia el formulario
-                    switchTab('login'); // Cambia a la pestaña de login después del registro exitoso
-                } else {
-                    showMessage(result.message || 'Error en el registro.', 'error');
+                // Validación de respuesta OK antes de parsear JSON
+                if (!response.ok) {
+                    const errorResult = await response.json().catch(() => ({ message: 'Error desconocido en el registro.' }));
+                    showMessage(errorResult.message || `Error HTTP: ${response.status}`, 'error');
+                    console.error(`Error en el registro: ${response.status}`, errorResult);
+                    return;
                 }
+
+                const result = await response.json();
+                showMessage(result.message, 'success');
+                registerForm.reset(); // Limpia el formulario
+                switchTab('login'); // Cambia a la pestaña de login después del registro exitoso
+
             } catch (error) {
                 console.error('Error de red al registrar:', error);
                 showMessage('Error de conexión. Inténtalo de nuevo.', 'error');
@@ -128,23 +136,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify(data)
                 });
 
+                // Validación de respuesta OK antes de parsear JSON
+                if (!response.ok) {
+                    const errorResult = await response.json().catch(() => ({ message: 'Error desconocido en el inicio de sesión.' }));
+                    showMessage(errorResult.message || `Error HTTP: ${response.status}`, 'error');
+                    console.error(`Error en el inicio de sesión: ${response.status}`, errorResult);
+                    return;
+                }
+
                 const result = await response.json();
 
-                if (response.ok) {
-                    showMessage(result.message, 'success');
-                    localStorage.setItem('token', result.token); // Almacena el token
-                    localStorage.setItem('user', JSON.stringify(result.user)); // Almacena la info del usuario
+                showMessage(result.message, 'success');
+                localStorage.setItem('token', result.token); // Almacena el token
+                localStorage.setItem('user', JSON.stringify(result.user)); // Almacena la info del usuario
 
-                    // Redirige según el rol del usuario
-                    const userRole = result.user.rol;
-                    if (userRole === 'admin') {
-                        window.location.href = '/dashboard.html'; // Redirige a la página de administración
-                    } else {
-                        window.location.href = '/'; // Redirige a la página principal de productos para clientes
-                    }
+                // Redirige según el rol del usuario
+                const userRole = result.user.rol;
+                if (userRole === 'admin') {
+                    window.location.href = '/dashboard.html'; // Redirige a la página de administración
                 } else {
-                    showMessage(result.message || 'Error en el inicio de sesión.', 'error');
+                    window.location.href = '/'; // Redirige a la página principal de productos para clientes (index.html)
                 }
+
             } catch (error) {
                 console.error('Error de red al iniciar sesión:', error);
                 showMessage('Error de conexión. Inténtalo de nuevo.', 'error');

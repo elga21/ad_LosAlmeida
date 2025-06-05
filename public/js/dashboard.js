@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageBox = document.getElementById('message-box');
     const loadingSpinner = document.getElementById('loading-spinner');
 
-    const API_BASE_URL = 'http://localhost:3000/api';
+    // CAMBIO CLAVE: API_BASE_URL ahora es dinámica para apuntar al dominio de la aplicación desplegada
+    const API_BASE_URL = `${window.location.origin}/api`;
 
     // Función para mostrar mensajes en la caja de mensajes global
     function showMessage(message, type = 'success') {
@@ -17,6 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 messageBox.classList.remove('show');
             }, 3000);
+        } else {
+            console.warn('Elemento message-box no encontrado en el DOM.');
+            // No usar alert() en producción o en apps complejas
+            // alert(message); // Fallback si no hay messageBox
         }
     }
 
@@ -51,6 +56,15 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Se realiza una petición a la nueva ruta de categorías
             const response = await fetch(`${API_BASE_URL}/categorias`);
+
+            // Validación de respuesta OK antes de parsear JSON
+            if (!response.ok) {
+                const errorResult = await response.json().catch(() => ({ message: 'Error desconocido al cargar categorías.' }));
+                showMessage(errorResult.message || `Error HTTP: ${response.status} al cargar categorías.`, 'error');
+                console.error(`Error al cargar categorías: ${response.status}`, errorResult);
+                return;
+            }
+
             const categories = await response.json();
 
             productCategorySelect.innerHTML = '<option value="">Selecciona una categoría</option>';
@@ -61,8 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 productCategorySelect.appendChild(option);
             });
         } catch (error) {
-            console.error('Error al cargar categorías:', error);
-            showMessage('Error al cargar categorías.', 'error');
+            console.error('Error de red al cargar categorías:', error);
+            showMessage('Error de conexión. No se pudieron cargar las categorías.', 'error');
         }
     }
 
@@ -80,7 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 descripcion: document.getElementById('product-description').value,
                 precio: parseFloat(document.getElementById('product-price').value),
                 stock: parseInt(document.getElementById('product-stock').value),
-                imagen_url: document.getElementById('product-image-url').value, // Nuevo campo
+                // CAMBIO: Asegúrate de que el campo de imagen se llame 'imagen_url' al enviarlo al backend
+                imagen_url: document.getElementById('product-image-url').value, 
                 id_categoria: parseInt(productCategorySelect.value) // Obtener el ID de la categoría
             };
 
@@ -103,16 +118,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify(data) // Enviar los datos del producto como JSON
                 });
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    showMessage(result.message, 'success');
-                    productForm.reset(); // Limpiar el formulario después del registro exitoso
-                    // Opcional: Recargar categorías si se permite añadir nuevas desde aquí
-                    // loadCategories();
-                } else {
-                    showMessage(result.message || 'Error al registrar el producto.', 'error');
+                // Validación de respuesta OK antes de parsear JSON
+                if (!response.ok) {
+                    const errorResult = await response.json().catch(() => ({ message: 'Error desconocido' }));
+                    showMessage(errorResult.message || `Error HTTP: ${response.status}`, 'error');
+                    console.error(`Error al registrar producto: ${response.status}`, errorResult);
+                    return;
                 }
+
+                const result = await response.json();
+                showMessage(result.message, 'success');
+                productForm.reset(); // Limpiar el formulario después del registro exitoso
+                // Opcional: Recargar categorías si se permite añadir nuevas desde aquí
+                // loadCategories();
+
             } catch (error) {
                 console.error('Error de red al registrar producto:', error);
                 showMessage('Error de conexión. Inténtalo de nuevo.', 'error');
@@ -128,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             localStorage.removeItem('cart'); // Limpia el carrito al cerrar sesión
-            window.location.href = '/index.html';
+            window.location.href = '/index.html'; // Redirige al index (main products page)
         });
     }
 

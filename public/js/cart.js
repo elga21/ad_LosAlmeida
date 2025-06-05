@@ -9,7 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageBox = document.getElementById('message-box');
     const loadingSpinner = document.getElementById('loading-spinner');
 
-    const API_BASE_URL = 'http://localhost:3000/api'; // URL base de tu API
+    // CAMBIO CLAVE: API_BASE_URL ahora es dinámica para apuntar al dominio de la aplicación desplegada
+    const API_BASE_URL = `${window.location.origin}/api`;
 
     // Cargar el carrito desde localStorage
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -22,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 messageBox.classList.remove('show');
             }, 3000);
+        } else {
+            console.warn('Elemento message-box no encontrado en el DOM.');
+            // alert(message); // No usar alert() en producción o en apps complejas
         }
     }
 
@@ -42,32 +46,41 @@ document.addEventListener('DOMContentLoaded', () => {
         cartTotalSpan.textContent = total.toFixed(2);
 
         if (cart.length === 0) {
-            checkoutButton.disabled = true;
-            emptyCartMessage.classList.remove('hidden');
+            if (checkoutButton) checkoutButton.disabled = true; // Asegúrate de que el botón exista
+            if (emptyCartMessage) emptyCartMessage.classList.remove('hidden');
         } else {
-            checkoutButton.disabled = false;
-            emptyCartMessage.classList.add('hidden');
+            if (checkoutButton) checkoutButton.disabled = false; // Asegúrate de que el botón exista
+            if (emptyCartMessage) emptyCartMessage.classList.add('hidden');
         }
     }
 
     // Función para renderizar los ítems del carrito
     function renderCartItems() {
+        if (!cartList) return; // Asegúrate de que cartList exista
+
         cartList.innerHTML = ''; // Limpia la lista antes de renderizar
         if (cart.length === 0) {
-            emptyCartMessage.classList.remove('hidden');
+            if (emptyCartMessage) emptyCartMessage.classList.remove('hidden');
             updateCartSummary(); // Asegura que el total se actualice a 0
             return;
         } else {
-            emptyCartMessage.classList.add('hidden');
+            if (emptyCartMessage) emptyCartMessage.classList.add('hidden');
         }
 
         cart.forEach(item => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'flex items-center justify-between border-b border-gray-200 py-3';
+            
+            // Añadido un elemento de imagen si `item.imagen_url` existe en el carrito
+            const itemImageHtml = item.imagen_url ? `<img src="${item.imagen_url}" alt="${item.nombre}" class="w-16 h-16 object-cover rounded-md mr-4" onerror="this.onerror=null;this.src='https://placehold.co/64x64/E0E0E0/333333?text=N/A';">` : '';
+
             itemDiv.innerHTML = `
-                <div class="flex-grow">
-                    <h3 class="text-lg font-semibold text-gray-800">${item.nombre}</h3>
-                    <p class="text-gray-600 text-sm">$${item.precio.toFixed(2)} c/u</p>
+                <div class="flex items-center flex-grow">
+                    ${itemImageHtml}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800">${item.nombre}</h3>
+                        <p class="text-gray-600 text-sm">$${item.precio.toFixed(2)} c/u</p>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-3">
                     <button class="decrease-quantity-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-1 px-3 rounded-lg transition duration-200" data-id="${item.id_producto}">-</button>
@@ -90,7 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.increase-quantity-btn').forEach(button => {
             button.addEventListener('click', (e) => {
                 const id = parseInt(e.target.dataset.id);
-                const stock = parseInt(e.target.dataset.stock); // Obtener el stock del producto
+                // Asegúrate de pasar el stock real del producto que está en el carrito
+                const itemInCart = cart.find(item => item.id_producto === id);
+                const stock = itemInCart ? itemInCart.stock : Infinity; 
                 updateQuantity(id, 1, stock);
             });
         });
@@ -113,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const newQuantity = currentItem.cantidad + change;
 
             if (newQuantity <= 0) {
-                // Si la cantidad es 0 o menos, elimina el producto
                 removeItem(id);
             } else if (newQuantity > stock) {
                 showMessage(`No hay suficiente stock para añadir más de "${currentItem.nombre}". Stock disponible: ${stock}.`, 'error');
@@ -139,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             localStorage.removeItem('cart'); // Limpia el carrito al cerrar sesión
-            window.location.href = '/'; // Redirige a la página de inicio
+            window.location.href = '/'; // Redirige a la página de inicio (index.html)
         });
     }
 
@@ -181,16 +195,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({ items: orderItems }) // Envía los ítems del carrito
                 });
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    showMessage(result.message || 'Pedido realizado con éxito!', 'success');
-                    localStorage.removeItem('cart'); // Limpia el carrito después de la compra exitosa
-                    cart = []; // Resetea el carrito en memoria
-                    renderCartItems(); // Vuelve a renderizar para mostrar el carrito vacío
-                } else {
-                    showMessage(result.message || 'Error al procesar el pedido.', 'error');
+                // Validación de respuesta OK antes de parsear JSON
+                if (!response.ok) {
+                    const errorResult = await response.json().catch(() => ({ message: 'Error desconocido' }));
+                    showMessage(errorResult.message || `Error HTTP: ${response.status}`, 'error');
+                    console.error(`Error al procesar pedido: ${response.status}`, errorResult);
+                    return;
                 }
+
+                const result = await response.json();
+                showMessage(result.message || 'Pedido realizado con éxito!', 'success');
+                localStorage.removeItem('cart'); // Limpia el carrito después de la compra exitosa
+                cart = []; // Resetea el carrito en memoria
+                renderCartItems(); // Vuelve a renderizar para mostrar el carrito vacío
+
             } catch (error) {
                 console.error('Error de red al finalizar la compra:', error);
                 showMessage('Error de conexión. No se pudo finalizar la compra.', 'error');

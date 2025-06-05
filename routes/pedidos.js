@@ -1,141 +1,155 @@
-// routes/pedidos.js
-const express = require('express'); // Importa Express
-const router = express.Router(); // Crea un router de Express
-const db = require('../config/db'); // Importa la conexión a la base de datos
-const { verifyToken } = require('./usuarios'); // Importa el middleware de verificación de token
+// Los_ALMEYDAS_Backend/routes/pedidos.js
+const express = require('express');
+const router = express.Router();
+const pool = require('../config/db'); // Importa el pool de conexiones a la base de datos
+const authenticateToken = require('../middleware/authenticateToken'); // Middleware de autenticación
+const authorizeRole = require('../middleware/authorizeRole'); // Middleware de autorización
 
-// Ruta para crear un nuevo pedido
-// Requiere autenticación (verifyToken)
-router.post('/', verifyToken, async (req, res) => {
-    const { items } = req.body; // Obtiene los ítems del pedido del cuerpo de la solicitud
-    const userId = req.userId; // Obtiene el ID del usuario del token decodificado
+// 1. GET /api/pedidos - Obtener todos los pedidos (solo para admins) o pedidos del usuario (para clientes)
+router.get('/', authenticateToken, async (req, res) => {
+    const userId = req.user.id_usuario; // ID del usuario autenticado
+    const userRole = req.user.rol;     // Rol del usuario autenticado
 
-    // Valida que haya ítems en el pedido
+    let query = `
+        SELECT
+            p.id_pedido,
+            p.id_usuario,
+            u.nombre_usuario,
+            p.fecha_pedido,
+            p.estado,
+            SUM(dp.cantidad * dp.precio_unitario) AS total_pedido
+        FROM
+            PEDIDOS p
+        JOIN
+            USUARIOS u ON p.id_usuario = u.id_usuario
+        JOIN
+            DETALLE_PEDIDO dp ON p.id_pedido = dp.id_pedido
+    `;
+    let queryParams = [];
+
+    if (userRole === 'cliente') {
+        query += ` WHERE p.id_usuario = ?`;
+        queryParams.push(userId);
+    }
+
+    // Agrupar por pedido y ordenar
+    query += ` GROUP BY p.id_pedido, p.id_usuario, u.nombre_usuario, p.fecha_pedido, p.estado ORDER BY p.fecha_pedido DESC`;
+
+    try {
+        const [pedidos] = await pool.execute(query, queryParams);
+
+        // Para cada pedido, obtener sus detalles de productos
+        const pedidosConDetalles = await Promise.all(pedidos.map(async (pedido) => {
+            const detallesQuery = `
+                SELECT
+                    dp.cantidad,
+                    dp.precio_unitario,
+                    prod.nombre,
+                    prod.url_imagen  -- Asegurarse de seleccionar la URL de la imagen
+                FROM
+                    DETALLE_PEDIDO dp
+                JOIN
+                    PRODUCTOS prod ON dp.id_producto = prod.id_producto
+                WHERE
+                    dp.id_pedido = ?
+            `;
+            const [productos] = await pool.execute(detallesQuery, [pedido.id_pedido]);
+            return { ...pedido, productos };
+        }));
+
+        res.json(pedidosConDetalles);
+    } catch (error) {
+        console.error('Error al obtener pedidos:', error);
+        res.status(500).json({ message: 'Error interno del servidor al obtener pedidos.', error: error.message });
+    }
+});
+
+// 2. PUT /api/pedidos/:id - Actualizar el estado de un pedido (solo para admins)
+router.put('/:id', authenticateToken, authorizeRole('admin'), async (req, res) => {
+    const { id } = req.params;
+    const { estado } = req.body;
+
+    // Validar el estado
+    const estadosValidos = ['Pendiente', 'Confirmado', 'Enviado', 'Entregado', 'Cancelado'];
+    if (!estadosValidos.includes(estado)) {
+        return res.status(400).json({ message: 'Estado de pedido no válido.' });
+    }
+
+    try {
+        const updateQuery = `UPDATE PEDIDOS SET estado = ? WHERE id_pedido = ?`;
+        const [result] = await pool.execute(updateQuery, [estado, id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Pedido no encontrado.' });
+        }
+        res.json({ message: 'Estado del pedido actualizado con éxito.', id_pedido: id, nuevo_estado: estado });
+    } catch (error) {
+        console.error('Error al actualizar el estado del pedido:', error);
+        res.status(500).json({ message: 'Error interno del servidor al actualizar el estado del pedido.', error: error.message });
+    }
+});
+
+// 3. POST /api/pedidos - Crear un nuevo pedido (para clientes)
+router.post('/', authenticateToken, authorizeRole('cliente'), async (req, res) => {
+    const userId = req.user.id_usuario; // ID del usuario que realiza el pedido
+    const { items } = req.body; // Array de { id_producto, cantidad }
+
     if (!items || items.length === 0) {
         return res.status(400).json({ message: 'El pedido debe contener al menos un producto.' });
     }
 
-    let totalPedido = 0; // Inicializa el total del pedido
-    let transaction; // Declarar la variable de transacción fuera del try para que esté disponible en finally
+    let connection_pedido; // Usaremos una variable para la conexión dentro de la transacción
 
     try {
-        transaction = await db.getConnection(); // Obtiene una conexión para la transacción
-        await transaction.beginTransaction(); // Inicia la transacción
+        connection_pedido = await pool.getConnection(); // Obtener una conexión de la pool
+        await connection_pedido.beginTransaction(); // Iniciar la transacción
 
-        // 1. Verificar stock y calcular total
+        // 1. Crear el nuevo pedido en la tabla PEDIDOS (sin columna 'total')
+        const insertPedidoQuery = `INSERT INTO PEDIDOS (id_usuario, fecha_pedido, estado) VALUES (?, NOW(), 'Pendiente')`;
+        const [pedidoResult] = await connection_pedido.execute(insertPedidoQuery, [userId]);
+        const id_pedido = pedidoResult.insertId;
+
+        // 2. Insertar los productos en DETALLE_PEDIDO y actualizar el stock
         for (const item of items) {
-            const [productRows] = await transaction.query('SELECT precio, stock FROM PRODUCTOS WHERE id_producto = ?', [item.id_producto]);
+            const { id_producto, cantidad } = item;
+
+            // Obtener precio y stock actual del producto
+            const [productRows] = await connection_pedido.execute('SELECT precio, stock FROM PRODUCTOS WHERE id_producto = ?', [id_producto]);
 
             if (productRows.length === 0) {
-                throw new Error(`Producto con ID ${item.id_producto} no encontrado.`);
+                await connection_pedido.rollback();
+                return res.status(404).json({ message: `Producto con ID ${id_producto} no encontrado.` });
             }
 
-            const product = productRows[0];
+            const { precio, stock } = productRows[0];
 
-            if (product.stock < item.cantidad) {
-                throw new Error(`Stock insuficiente para el producto: ${item.nombre || item.id_producto}. Stock disponible: ${product.stock}, solicitado: ${item.cantidad}.`);
+            if (stock < cantidad) {
+                await connection_pedido.rollback();
+                return res.status(400).json({ message: `Stock insuficiente para el producto con ID ${id_producto}. Stock disponible: ${stock}, solicitado: ${cantidad}.` });
             }
 
-            totalPedido += product.precio * item.cantidad;
+            // Insertar en DETALLE_PEDIDO (corregido a DETALLE_PEDIDO)
+            const insertDetalleQuery = `INSERT INTO DETALLE_PEDIDO (id_pedido, id_producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?)`;
+            await connection_pedido.execute(insertDetalleQuery, [id_pedido, id_producto, cantidad, precio]);
+
+            // Actualizar stock del producto
+            const updateStockQuery = `UPDATE PRODUCTOS SET stock = stock - ? WHERE id_producto = ?`;
+            await connection_pedido.execute(updateStockQuery, [cantidad, id_producto]);
         }
 
-        // 2. Crear el pedido principal
-        const [orderResult] = await transaction.query('INSERT INTO PEDIDOS (id_usuario, total, estado) VALUES (?, ?, ?)', [userId, totalPedido, 'Pendiente']); // Estado inicial 'Pendiente'
-        const id_pedido = orderResult.insertId; // Obtiene el ID del pedido recién creado
-
-        // 3. Insertar detalles del pedido y actualizar stock
-        for (const item of items) {
-            // No es necesario volver a consultar el precio si ya lo tenemos del paso 1
-            // Sin embargo, para mayor robustez, se puede volver a obtener el precio unitario del producto
-            // para asegurar que el precio_unitario en el detalle del pedido sea el actual de la DB.
-            const [productRows] = await transaction.query('SELECT precio FROM PRODUCTOS WHERE id_producto = ?', [item.id_producto]);
-            const productPrice = productRows[0].precio;
-
-            await transaction.query(
-                'INSERT INTO DETALLES_PEDIDO (id_pedido, id_producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?)',
-                [id_pedido, item.id_producto, item.cantidad, productPrice]
-            );
-
-            await transaction.query(
-                'UPDATE PRODUCTOS SET stock = stock - ? WHERE id_producto = ?',
-                [item.cantidad, item.id_producto]
-            );
-        }
-
-        await transaction.commit(); // Confirma la transacción
-        res.status(201).json({ message: 'Pedido creado exitosamente.', id_pedido });
+        await connection_pedido.commit(); // Confirmar la transacción
+        res.status(201).json({ message: 'Pedido creado con éxito.', id_pedido });
 
     } catch (error) {
-        if (transaction) {
-            await transaction.rollback(); // Si hay un error, revierte la transacción
+        if (connection_pedido) {
+            await connection_pedido.rollback(); // Deshacer la transacción en caso de error
         }
-        console.error('Error al crear el pedido:', error.message);
-        res.status(500).json({ message: 'Error al procesar el pedido.', error: error.message });
+        console.error('Error al crear el pedido:', error);
+        res.status(500).json({ message: 'Error interno del servidor al crear el pedido.', error: error.message });
     } finally {
-        if (transaction) {
-            transaction.release(); // Libera la conexión
+        if (connection_pedido) {
+            connection_pedido.release(); // Liberar la conexión
         }
-    }
-});
-
-// Ruta para obtener los pedidos de un usuario específico
-// Requiere autenticación (verifyToken)
-router.get('/user/:userId', verifyToken, async (req, res) => { // Agregado async
-    const { userId } = req.params; // Obtiene el ID del usuario de los parámetros de la URL
-
-    // Verifica que el usuario que solicita los pedidos sea el mismo que está autenticado
-    if (req.userId != userId) {
-        return res.status(403).json({ message: 'No tienes permiso para ver los pedidos de este usuario.' });
-    }
-
-    // Consulta para obtener los pedidos del usuario y sus detalles
-    const query = `
-        SELECT
-            p.id_pedido,
-            p.fecha_pedido,
-            p.total,
-            dp.cantidad,
-            dp.precio_unitario,
-            prod.nombre AS nombre_producto,
-            prod.descripcion AS descripcion_producto
-        FROM
-            PEDIDOS p
-        JOIN
-            DETALLES_PEDIDO dp ON p.id_pedido = dp.id_pedido
-        JOIN
-            PRODUCTOS prod ON dp.id_producto = prod.id_producto
-        WHERE
-            p.id_usuario = ?
-        ORDER BY
-            p.fecha_pedido DESC;
-    `;
-
-    try {
-        const [results] = await db.query(query, [userId]); // Usado await y desestructuración
-
-        // Agrupar los detalles del pedido por id_pedido
-        const pedidosAgrupados = {};
-        results.forEach(row => {
-            if (!pedidosAgrupados[row.id_pedido]) {
-                pedidosAgrupados[row.id_pedido] = {
-                    id_pedido: row.id_pedido,
-                    fecha_pedido: row.fecha_pedido,
-                    total: row.total,
-                    items: []
-                };
-            }
-            pedidosAgrupados[row.id_pedido].items.push({
-                nombre_producto: row.nombre_producto,
-                descripcion_producto: row.descripcion_producto,
-                cantidad: row.cantidad,
-                precio_unitario: row.precio_unitario
-            });
-        });
-
-        res.status(200).json(Object.values(pedidosAgrupados));
-    } catch (err) {
-        console.error('Error al obtener pedidos del usuario:', err);
-        res.status(500).json({ message: 'Error al obtener los pedidos.', error: err.message });
     }
 });
 

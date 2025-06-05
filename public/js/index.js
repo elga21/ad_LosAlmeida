@@ -8,8 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingSpinner = document.getElementById('loading-spinner');
     const adminLink = document.getElementById('admin-link');
     const authNavLink = document.getElementById('auth-nav-link'); // Este es el enlace "Login / Registro"
+    const pedidosLink = document.getElementById('pedidos-link'); // Enlace "Mis Pedidos"
 
-    const API_BASE_URL = 'http://localhost:3000/api';
+    // CAMBIO CLAVE: API_BASE_URL ahora es dinámica para apuntar al dominio de la aplicación desplegada
+    const API_BASE_URL = `${window.location.origin}/api`;
 
     // Cargar el carrito desde localStorage
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -23,6 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 messageBox.classList.remove('show');
             }, 3000);
+        } else {
+            console.warn('Elemento message-box no encontrado en el DOM.');
+            // No usar alert() en producción o en apps complejas
+            // alert(message); // Fallback si no hay messageBox
         }
     }
 
@@ -48,10 +54,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateNavigationLinks() {
         const user = JSON.parse(localStorage.getItem('user')); // Obtiene la información del usuario logueado
 
-        if (authNavLink && logoutButton && adminLink) {
+        if (authNavLink && logoutButton && adminLink && pedidosLink) { // Asegúrate de que todos los elementos existan
             if (user) { // Si hay un usuario logueado
                 authNavLink.classList.add('hidden'); // Ocultar el enlace de Login/Registro
                 logoutButton.classList.remove('hidden'); // Mostrar el botón de Cerrar Sesión
+                pedidosLink.classList.remove('hidden'); // Mostrar el enlace de Mis Pedidos
 
                 if (user.rol === 'admin') {
                     adminLink.classList.remove('hidden'); // Mostrar el enlace de Administración si es admin
@@ -62,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 authNavLink.classList.remove('hidden'); // Mostrar el enlace de Login/Registro
                 logoutButton.classList.add('hidden'); // Ocultar el botón de Cerrar Sesión
                 adminLink.classList.add('hidden'); // Ocultar el enlace de Administración
+                pedidosLink.classList.add('hidden'); // Ocultar el enlace de Mis Pedidos
             }
         }
     }
@@ -83,7 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Si es un producto nuevo, añadir con cantidad 1 (si hay stock)
             if (product.stock > 0) {
-                cart.push({ ...product, cantidad: 1 });
+                // Asegurarse de que la imagen_url se pase correctamente
+                cart.push({ ...product, cantidad: 1, imagen_url: product.imagen_url }); 
                 showMessage(`"${product.nombre}" añadido al carrito.`, 'success');
             } else {
                 showMessage(`El producto "${product.nombre}" no tiene stock disponible.`, 'error');
@@ -116,25 +125,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? product.precio.toFixed(2)
                 : (parseFloat(product.precio) || 0).toFixed(2);
 
-            // Placeholder image if no URL is provided or if the image fails to load
+            // Usa product.imagen_url (del backend) o una imagen de placeholder
             const imageUrl = product.imagen_url || `https://placehold.co/400x300/E0E0E0/333333?text=${encodeURIComponent(product.nombre)}`;
 
             productCard.innerHTML = `
                 <img src="${imageUrl}" alt="${product.nombre}" class="w-full h-48 object-cover rounded-lg mb-4" onerror="this.onerror=null;this.src='https://placehold.co/400x300/E0E0E0/333333?text=Imagen+no+disponible';" />
-                <h3 class="text-xl font-sans-serif text-red-800 mb-2">${product.nombre}</h3>
-                <p class="text-gray-500 text-sm mb-2">Categoría: ${product.categoria_nombre}</p>
-                <p class="text-red-1000 text-sm mb-4 flex-grow">${product.descripcion || 'Sin descripción'}</p>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">${product.nombre}</h3>
+                <p class="text-gray-600 text-sm mb-2">Categoría: ${product.categoria_nombre || 'N/A'}</p>
+                <p class="text-gray-700 text-sm mb-4 flex-grow">${product.descripcion || 'Sin descripción'}</p>
                 <div class="flex justify-between items-center mb-4">
-                    <span class="text-2xl font-bold text-black-600">$${displayPrice}</span>
+                    <span class="text-2xl font-bold text-blue-600">$${displayPrice}</span>
                     <span class="text-gray-500 text-sm">Stock: ${product.stock}</span>
                 </div>
-<button class="add-to-cart-btn bg-black hover:bg-gray-800 text-white font-normal py-1 px-2 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                        data-product-id="${product.id_producto}"
-                        data-product-name="${product.nombre}"
-                        data-product-price="${product.precio}"
-                        data-product-stock="${product.stock}"
-                        ${product.stock === 0 ? 'disabled' : ''}>
-                    ${product.stock === 0 ? 'Agotado' : 'Agregar al Carrito'}
+                <button class="add-to-cart-btn bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md w-full
+                            ${product.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
+                            data-product-id="${product.id_producto}"
+                            data-product-name="${product.nombre}"
+                            data-product-price="${product.precio}"
+                            data-product-stock="${product.stock}"
+                            data-product-image="${product.imagen_url || ''}" 
+                            ${product.stock === 0 ? 'disabled' : ''}>
+                    ${product.stock === 0 ? 'Agotado' : 'Añadir al Carrito'}
                 </button>
             `;
             productsContainer.appendChild(productCard);
@@ -147,13 +158,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const productName = e.target.dataset.productName;
                 const productPrice = parseFloat(e.target.dataset.productPrice);
                 const productStock = parseInt(e.target.dataset.productStock);
+                const productImage = e.target.dataset.productImage; // Obtener la URL de la imagen
 
-                addToCart({
-                    id_producto: productId,
-                    nombre: productName,
-                    precio: productPrice,
-                    stock: productStock // Pasar el stock real del producto
-                });
+                const productData = products.find(p => p.id_producto === productId);
+                if (productData) { 
+                    addToCart({
+                        id_producto: productId,
+                        nombre: productName,
+                        precio: productPrice,
+                        stock: productStock,
+                        imagen_url: productImage // Asegurarse de usar imagen_url
+                    });
+                }
             });
         });
     }
@@ -175,16 +191,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: headers
             });
 
-            const result = await response.json();
-
-            if (response.ok) {
-                renderProducts(result);
-            } else {
-                showMessage(result.message || 'Error al cargar productos.', 'error');
+            // Verificar si la respuesta es OK antes de intentar parsear como JSON
+            if (!response.ok) {
+                const errorResult = await response.json().catch(() => ({ message: 'Error desconocido' }));
+                showMessage(errorResult.message || `Error HTTP: ${response.status}`, 'error');
                 if (productsContainer) {
                     productsContainer.innerHTML = '<p class="text-center text-red-600 col-span-full">Error al cargar productos. Por favor, intenta de nuevo más tarde.</p>';
                 }
+                console.error(`Error al cargar productos: ${response.status}`, errorResult);
+                return;
             }
+
+            const result = await response.json();
+            renderProducts(result); // Renderizar si la respuesta es OK
+
         } catch (error) {
             console.error('Error de red al cargar productos:', error);
             showMessage('Error de conexión. No se pudieron cargar los productos.', 'error');
@@ -202,6 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             localStorage.removeItem('cart'); // Limpia el carrito al cerrar sesión
+            updateNavigationLinks(); // Actualiza la UI de navegación después de cerrar sesión
             window.location.href = '/'; // Redirige a la página de inicio
         });
     }
@@ -210,3 +231,4 @@ document.addEventListener('DOMContentLoaded', () => {
     updateNavigationLinks();
     fetchProducts();
 });
+

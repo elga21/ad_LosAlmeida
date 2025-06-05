@@ -5,70 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Los ALMEYDAS - Tienda de Productos</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
-   <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/main.css"> <!-- Asegúrate de que esta ruta sea correcta si existe -->
 </head>
 <body class="bg-gray-400 min-h-screen flex flex-col font-inter">
 
-    <header class="bg-white shadow-md p-4 flex justify-center items-center rounded-b-lg">
-        <!--<h1 class="text-2xl font-bold text-gray-800">🛍️ Productos Los Almeydas</h1>-->
-    <div class="flex-shrink-0">
-      <img src="Imagenes/logo.jpeg" alt="Logo" class="h-16">
-    </div>
-        <nav class="flex items-center space-x-4">
-
-		<div style="text-align: center; font-family: Arial, sans-serif;">
-	  <a href="/main.html" class="bg-transparent text-red-600 py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md hover:bg-gray-300 hover:text-black inline-block">
-	      Bienvenidos
-	<a href="/index.html" class="bg-gray-200 shadow-md text-black-600 py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md hover:bg-gray-300 hover:text-black inline-block">
-	    Productos 
-	</a>
-
-	  <a href="/nosotros.html" class="bg-transparent text-red-600 py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md hover:bg-gray-300 hover:text-black inline-block">
-	      Nosotros 
-	  </a>
-	  <a id="auth-nav-link" href="/auth.html" class="bg-transparent text-red-600 py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md hover:bg-gray-300 hover:text-black inline-block">
-	      Login / Registro
-	  </a>
-
-	  <a id="admin-link" href="/dashboard.html" class="bg-transparent text-red-600 py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md hover:bg-gray-300 hover:text-black inline-block hidden">
-	      Gestión de Productos
-	  </a>
-	<a href="/cart.html" class="bg-transparent text-red-600 py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md hover:bg-gray-300 hover:text-black inline-block">
-	    🛒 Ver Carrito (<span id="cart-count">0</span>)
-	</a>
-
-	  <button id="logout-button" class="bg-transparent text-red-600 py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md hover:bg-gray-300 hover:text-black inline-block hidden">
-	      Cerrar Sesión
-	  </button>
-	</div>
- 	<button class="login-btn" onclick="location.href='/auth.html'" style="background: none; border: none; cursor: pointer;">	 
-		<img src="/imag/icons8_usuario_32.png" alt="Login" style="width: 24px; height: 24px;">
-	</button>
+    <header class="bg-white shadow-md p-4 flex justify-between items-center rounded-b-lg">
+        <div class="flex-shrink-0">
+            <!-- Ruta del logo corregida a /Imagenes/logo.jpeg asumiendo que Imagenes está en public/ -->
+            <img src="/Imagenes/logo.jpeg" alt="Logo Los Almeydas" class="h-16">
+        </div>
+        <nav class="flex items-center space-x-2 sm:space-x-4">
+            <!-- Contenedor principal para los enlaces de navegación -->
+            <div class="text-center font-inter flex flex-wrap justify-center items-center space-x-2 sm:space-x-4">
+                <a href="/main.html" class="nav-link">
+                    Bienvenidos
+                </a>
+                <a href="/index.html" class="nav-link bg-gray-200 shadow-md text-black-600">
+                    Productos
+                </a>
+                <a href="/nosotros.html" class="nav-link">
+                    Nosotros
+                </a>
                 
-        </nav>
+                <!-- Enlaces controlados por JavaScript (visible/hidden por defecto) -->
+                <a id="pedidos-link" href="/pedidos.html" class="nav-link hidden">
+                    Mis Pedidos
+                </a>
+                <a id="admin-link" href="/dashboard.html" class="nav-link hidden">
+                    Gestión de Productos
+                </a>
+                <a href="/cart.html" class="nav-link">
+                    🛒 Carrito (<span id="cart-count">0</span>)
+                </a>
 
+                <a id="auth-nav-link" href="/auth.html" class="nav-link">
+                    Login / Registro
+                </a>
+                <button id="logout-button" class="nav-link hidden">
+                    Cerrar Sesión
+                </button>
+            </div>
+            <!-- El botón de login con imagen ahora es redundante con auth-nav-link y se elimina -->
+            <!-- <button class="login-btn" onclick="location.href='/auth.html'" style="background: none; border: none; cursor: pointer;">
+                <img src="/imag/icons8_usuario_32.png" alt="Login" style="width: 24px; height: 24px;">
+            </button> -->
+        </nav>
     </header>
     
-<form action="/buscar" method="GET" style="display: flex; justify-content: center; margin: 2px 0 0 0;">
-  <input 
-    type="text" 
-    name="query" 
-    placeholder="Buscar..." 
-    style="padding: 4px 8px; font-size: 12px; border: 2px solid #ccc; border-radius: 12px 0 0 12px; outline: none; width: 140px;"
-  >
-  <button 
-    type="submit" 
-    style="padding: 4px 10px; background: white; border: 2px solid #ccc; border-left: none; color: #007BFF; font-size: 16px; cursor: pointer; border-radius: 0 12px 12px 0; transition: color 0.3s ease;"
-    onmouseover="this.style.color='#0056b3'"
-    onmouseout="this.style.color='#007BFF'"
-    aria-label="Buscar"
-  >
-    🔍
-  </button>
-</form>
-
+    <form action="/buscar" method="GET" class="flex justify-center my-4">
+        <input 
+            type="text" 
+            name="query" 
+            placeholder="Buscar..." 
+            class="px-3 py-2 text-sm border-2 border-gray-300 rounded-l-lg outline-none w-36 sm:w-48 md:w-64"
+        >
+        <button 
+            type="submit" 
+            class="px-4 py-2 bg-white border-2 border-gray-300 border-l-0 text-blue-500 text-base cursor-pointer rounded-r-lg transition-colors duration-300 hover:text-blue-700"
+            aria-label="Buscar"
+        >
+            🔍
+        </button>
+    </form>
 
     <main class="container mx-auto p-6 flex-grow">
         <div id="message-box" class="message-box"></div> 
@@ -78,7 +77,8 @@
         </div>
 
         <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            </div>
+            <!-- Los productos se cargarán aquí -->
+        </div>
     </main>
 
     <footer class="bg-gray-800 text-white p-4 text-center mt-8 rounded-t-lg">
@@ -86,5 +86,14 @@
     </footer>
 
     <script src="/js/index.js"></script>
+    <script>
+        // Estilos CSS para los enlaces de navegación (reemplaza estilos inline anteriores)
+        // Opcional: Podrías mover esto a style.css
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.add('bg-transparent', 'text-red-600', 'py-2', 'px-4', 'rounded-lg', 'transition', 'duration-300', 'ease-in-out', 'transform', 'hover:scale-105', 'hover:shadow-md', 'hover:bg-gray-300', 'hover:text-black', 'inline-block');
+        });
+        document.querySelector('.nav-link.bg-gray-200').classList.remove('text-red-600'); // Quita el rojo para el de productos si es el actual
+    </script>
 </body>
 </html>
+

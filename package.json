@@ -7,7 +7,7 @@
     "start": "node server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "fernando bevans",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.2",
