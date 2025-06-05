@@ -1,25 +1,10 @@
 /* public/css/style.css */
 
-/* Estilos generales */
+/* Estilos generales - Tailwind ya los maneja en el HTML (font-sans, bg-gray-100, etc.) */
 body {
-    font-family: 'Inter', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f7f6; /* Un gris claro para el fondo */
-    color: #333;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-/* Encabezado principal (ya usando Tailwind en HTML, estos son estilos base) */
-/* Si usas Tailwind, muchas de estas clases se pueden manejar directamente en el HTML */
-/* Sin embargo, las dejo aquí para elementos que no tienen clases de Tailwind directamente */
-.main-header {
-    /* Tailwind ya maneja bg-white shadow-md p-4 flex justify-between items-center rounded-b-lg */
+    min-height: 100vh; /* Ensure body takes full viewport height for sticky footer */
+    display: flex;
+    flex-direction: column;
 }
 
 /* Cuadro de mensajes */
@@ -106,145 +91,123 @@ body {
     display: none !important;
 }
 
-/* Estilos específicos para el carrito (movidos de cart.html) */
-.cart-container {
-    max-width: 900px;
-    margin: 50px auto;
-    background: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+/* Estilos específicos para un elemento del carrito (ej. un ítem individual) */
+/* Estos se cargarán dinámicamente con JavaScript, por lo que su estilo debe ser aquí */
+/* Tailwind classes will handle most of this, but here's a template for cart items */
 .cart-item {
     border-bottom: 1px solid #eee;
-    padding: 15px 0;
+    padding-bottom: 1rem;
+    padding-top: 1rem;
     display: flex;
-    flex-wrap: wrap; /* Permite que los elementos se envuelvan */
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
 }
+
 .cart-item:last-child {
     border-bottom: none;
 }
-.cart-item h4 {
+
+/* Example of how a cart item's elements might look - adjust based on your cart.js output */
+.cart-item-info {
+    flex-basis: 100%; /* Default to full width on small screens */
+    margin-bottom: 0.5rem;
+    text-align: left;
+}
+
+.cart-item-info h4 {
     color: #007bff;
+    font-size: 1.125rem; /* ~18px */
+    font-weight: bold;
     margin: 0;
-    flex-basis: 100%; /* Ocupa todo el ancho en móviles */
-    text-align: left;
 }
-.cart-item p {
-    margin: 5px 0;
+
+.cart-item-info p {
     font-size: 0.9em;
-    flex-basis: 50%; /* Media pantalla en desktop */
-    text-align: left;
+    color: #555;
+    margin: 0;
 }
-.cart-item .quantity-control,
-.cart-item .remove-from-cart-btn {
-    flex-basis: 100%; /* Ocupan todo el ancho en móviles */
-    margin-top: 10px;
-    text-align: center;
-}
+
 .quantity-control {
     display: flex;
-    justify-content: center;
+    justify-content: center; /* Center on small screens */
     align-items: center;
-    gap: 5px;
+    gap: 0.5rem; /* ~8px */
+    flex-basis: 100%; /* Full width on small screens */
+    margin-top: 0.5rem;
 }
+
 .quantity-control button {
-    padding: 5px 10px;
+    padding: 0.3125rem 0.625rem; /* ~5px 10px */
     font-size: 1em;
-    width: 30px; /* Tamaño fijo para botones */
-    height: 30px;
+    width: 2rem; /* 32px */
+    height: 2rem; /* 32px */
     display: flex;
     justify-content: center;
     align-items: center;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
+
+.quantity-control button:hover {
+    background-color: #e0e0e0;
+}
+
 .item-quantity-input {
-    width: 60px;
+    width: 3rem; /* 48px */
     text-align: center;
-    padding: 5px;
+    padding: 0.3125rem;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 0.25rem;
     font-size: 1em;
 }
+
 .remove-from-cart-btn {
     background-color: #dc3545;
     color: white;
     border: none;
-    border-radius: 5px;
-    padding: 8px 15px;
+    border-radius: 0.25rem;
+    padding: 0.5rem 0.75rem; /* ~8px 12px */
     cursor: pointer;
     transition: background-color 0.3s ease;
+    flex-basis: 100%; /* Full width on small screens */
+    margin-top: 0.5rem;
+    font-size: 0.9em;
 }
+
 .remove-from-cart-btn:hover {
     background-color: #c82333;
 }
-.cart-summary {
-    margin-top: 20px;
-    text-align: right;
-    font-size: 1.2em;
-    font-weight: bold;
-}
-.cart-actions {
-    margin-top: 20px;
-    text-align: center;
-}
-.cart-actions button {
-    margin: 0 10px;
-}
 
-
-
-
-
-
-
-
-/* Ajustes responsivos para carrito */
-@media (min-width: 768px) {
-    .cart-item h4 {
-        flex-basis: 30%; /* Más espacio en desktop */
+/* Media Queries for cart item layout */
+@media (min-width: 640px) { /* Tailwind's 'sm' breakpoint */
+    .cart-item-info {
+        flex-basis: 40%; /* More space on small screens */
+        margin-bottom: 0;
     }
-    .cart-item p {
-        flex-basis: 20%;
-    }
-    .cart-item .quantity-control {
-        flex-basis: 20%;
+    .quantity-control {
+        flex-basis: 30%;
         justify-content: flex-start;
+        margin-top: 0;
     }
-    .cart-item .remove-from-cart-btn {
-        flex-basis: 15%;
+    .remove-from-cart-btn {
+        flex-basis: 20%;
         margin-top: 0;
         text-align: right;
     }
 }
 
-/* Media Queries para responsividad general (ya estaba, pero lo mantengo) */
-@media (max-width: 768px) {
-    .main-header {
-        flex-direction: column;
-        align-items: flex-start;
+@media (min-width: 768px) { /* Tailwind's 'md' breakpoint */
+    .cart-item-info {
+        flex-basis: 30%; /* More space on desktop */
     }
-
-    .main-header h1 {
-        font-size: 1.8em;
-        margin-bottom: 10px;
+    .quantity-control {
+        flex-basis: 25%;
     }
-
-    .main-header nav {
-        width: 100%;
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .main-header nav a {
-        padding: 6px 12px;
-        font-size: 0.9em;
-    }
-}
-
-@media (max-width: 480px) {
-    .main-header h1 {
-        font-size: 1.5em;
+    .remove-from-cart-btn {
+        flex-basis: 15%;
     }
 }
