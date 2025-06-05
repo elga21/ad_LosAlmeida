@@ -5,7 +5,7 @@ const pool = require('../config/db'); // Importa el pool de conexiones a la base
 // CORRECCIÓN CLAVE: El nombre del archivo y la importación del middleware deben coincidir.
 // Se eliminó la 's' extra en 'authenticatetsToken'
 const authenticateToken = require('../middleware/authenticateToken'); // SIN la 's' extra en 'authenticateToken'
-const authorizeRole = require('../middleware/authorizeRole'); // Middleware de autorización
+const authorizeRole = require('../middleware/authorizeRole');
 
 // 1. GET /api/pedidos - Obtener todos los pedidos (solo para admins) o pedidos del usuario (para clientes)
 router.get('/', authenticateToken, async (req, res) => {
